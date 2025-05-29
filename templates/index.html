@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Early-Stage PPA Prediction</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .fade-in {
+      animation: fadeIn 1s ease-in-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    body.dark {
+      background-color: #111827;
+      color: #f9fafb;
+    }
+    .dark textarea,
+    .dark input,
+    .dark button,
+    .dark select {
+      background-color: #1f2937;
+      color: #f9fafb;
+      border-color: #4b5563;
+    }
+    .dark .card {
+      background-color: #1f2937;
+      border-color: #4b5563;
+    }
+    .dark #result {
+      background-color: #1f2937;
+    }
+    .code-editor {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .progress-bar {
+      height: 6px;
+      background-color: #e5e7eb;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background-color: #3b82f6;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 200px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+    .card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .dark .card:hover {
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    }
+    .floating-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      z-index: 99;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .loading-spinner {
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-900 transition-all duration-300 min-h-screen">
+
+
+  <!-- Hero Section -->
+  <section class="text-center py-12 fade-in">
+    <div class="max-w-4xl mx-auto px-4">
+      <div class="inline-block bg-blue-100 dark:bg-blue-900 p-3 rounded-full mb-4">
+        <i class="fas fa-microchip text-blue-600 dark:text-blue-300 text-3xl"></i>
+      </div>
+      <h1 class="text-4xl md:text-5xl font-bold mb-4">Early-Stage PPA Prediction</h1>
+      <p class="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Predict Area, Delay & Power from Verilog RTL using Machine Learning models</p>
+      <div class="mt-6">
+        <button onclick="scrollToInput()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2 mx-auto">
+          <i class="fas fa-bolt"></i>
+          <span>Try It Now</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="max-w-6xl mx-auto px-6 py-12 fade-in">
+    <h2 class="text-2xl font-semibold mb-8 text-center">✨ Key Features</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="card p-6 rounded-xl border bg-white dark:bg-gray-800 shadow-sm">
+        <div class="text-blue-600 dark:text-blue-400 text-2xl mb-4">
+          <i class="fas fa-robot"></i>
+        </div>
+        <h3 class="font-bold text-lg mb-2">ML-Powered Predictions</h3>
+        <p class="text-gray-600 dark:text-gray-300">Our trained models accurately estimate PPA metrics without requiring full synthesis.</p>
+      </div>
+      <div class="card p-6 rounded-xl border bg-white dark:bg-gray-800 shadow-sm">
+        <div class="text-green-600 dark:text-green-400 text-2xl mb-4">
+          <i class="fas fa-stopwatch"></i>
+        </div>
+        <h3 class="font-bold text-lg mb-2">Instant Results</h3>
+        <p class="text-gray-600 dark:text-gray-300">Get predictions in seconds, saving hours compared to traditional synthesis flows.</p>
+      </div>
+      <div class="card p-6 rounded-xl border bg-white dark:bg-gray-800 shadow-sm">
+        <div class="text-purple-600 dark:text-purple-400 text-2xl mb-4">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h3 class="font-bold text-lg mb-2">Design Optimization</h3>
+        <p class="text-gray-600 dark:text-gray-300">Compare different RTL implementations quickly to find the most efficient design.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Workflow Visualization -->
+  <section class="max-w-6xl mx-auto px-6 py-12 fade-in bg-gray-50 dark:bg-gray-800 rounded-xl">
+    <h2 class="text-2xl font-semibold mb-8 text-center">🛠 How It Works</h2>
+    <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+      <div class="flex-1">
+        <div class="relative">
+          <!-- Workflow steps -->
+          <div class="mb-8 flex items-start gap-4">
+            <div class="flex-shrink-0 bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center">1</div>
+            <div>
+              <h4 class="font-bold mb-1">Upload RTL</h4>
+              <p class="text-gray-600 dark:text-gray-300">Provide your Verilog code via file upload or direct input.</p>
+            </div>
+          </div>
+          <div class="mb-8 flex items-start gap-4">
+            <div class="flex-shrink-0 bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center">2</div>
+            <div>
+              <h4 class="font-bold mb-1">Feature Extraction</h4>
+              <p class="text-gray-600 dark:text-gray-300">Our system analyzes your design's characteristics and structure.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0 bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center">3</div>
+            <div>
+              <h4 class="font-bold mb-1">PPA Prediction</h4>
+              <p class="text-gray-600 dark:text-gray-300">Machine learning models estimate area, power, and delay metrics.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex-1">
+        <img src="https://illustrations.popsy.co/amber/digital-nomad.svg" alt="Workflow illustration" class="w-full max-w-md mx-auto">
+      </div>
+    </div>
+  </section>
+
+  <!-- Prediction Section -->
+  <section id="input-section" class="max-w-4xl mx-auto px-6 py-12 fade-in">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border dark:border-gray-700">
+      <div class="p-6 border-b dark:border-gray-700">
+        <h2 class="text-2xl font-semibold mb-2 flex items-center gap-2">
+          <i class="fas fa-code text-blue-600 dark:text-blue-400"></i>
+          <span>Verilog Input</span>
+        </h2>
+        <p class="text-gray-600 dark:text-gray-300">Enter your RTL code below or upload a Verilog file</p>
+      </div>
+      
+      <div class="p-6">
+        <div class="mb-4 relative">
+          <div class="flex justify-between items-center mb-2">
+            <label for="verilogCode" class="font-medium">RTL Code:</label>
+            <div class="flex gap-2">
+              <button onclick="insertSampleCode()" class="text-sm px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                <i class="fas fa-vial mr-1"></i> Sample
+              </button>
+            </div>
+          </div>
+          <textarea id="verilogCode" class="code-editor w-full h-64 p-4 border rounded-lg resize-none mb-2" placeholder="module example(input a, b, output y);\n  assign y = a & b;\nendmodule"></textarea>
+          <div class="text-xs text-gray-500 dark:text-gray-400 flex justify-between items-center">
+            <span id="lineCounter">0 lines</span>
+            <span id="charCounter">0 characters</span>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4 mb-6">
+          <button onclick="handleFileUpload()" class="px-5 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors flex items-center gap-2">
+            <i class="fas fa-upload"></i>
+            <span>Upload Verilog</span>
+            <input type="file" id="fileInput" class="hidden" accept=".v,.sv,.vh" />
+          </button>
+          
+          <button onclick="predict()" id="predictBtn" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex-1 max-w-xs flex items-center justify-center gap-2">
+            <i class="fas fa-bolt"></i>
+            <span>Predict PPA</span>
+          </button>
+          
+          <button onclick="reset()" class="px-5 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors flex items-center gap-2">
+            <i class="fas fa-redo"></i>
+            <span>Reset</span>
+          </button>
+        </div>
+
+        <div class="progress-bar mb-4 hidden" id="progressBar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div id="result" class="bg-gray-100 dark:bg-gray-700 p-6 rounded-lg shadow-inner hidden">
+          <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
+            <i class="fas fa-chart-bar text-blue-600 dark:text-blue-400"></i>
+            <span>Prediction Results</span>
+          </h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border dark:border-gray-700">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="bg-blue-100 dark:bg-blue-900 p-2 rounded-full">
+                  <i class="fas fa-vector-square text-blue-600 dark:text-blue-300"></i>
+                </div>
+                <h4 class="font-bold">Area</h4>
+              </div>
+              <p class="text-2xl font-bold" id="areaResult">-- µm²</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Gate Equivalent</p>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border dark:border-gray-700">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="bg-green-100 dark:bg-green-900 p-2 rounded-full">
+                  <i class="fas fa-tachometer-alt text-green-600 dark:text-green-300"></i>
+                </div>
+                <h4 class="font-bold">Delay</h4>
+              </div>
+              <p class="text-2xl font-bold" id="delayResult">-- ns</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Critical Path</p>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border dark:border-gray-700">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="bg-red-100 dark:bg-red-900 p-2 rounded-full">
+                  <i class="fas fa-bolt text-red-600 dark:text-red-300"></i>
+                </div>
+                <h4 class="font-bold">Power</h4>
+              </div>
+              <p class="text-2xl font-bold" id="powerResult">-- µW</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">@100MHz</p>
+            </div>
+          </div>
+          
+          <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border dark:border-gray-700">
+            <h4 class="font-bold mb-3 flex items-center gap-2">
+              <i class="fas fa-lightbulb text-yellow-500"></i>
+              <span>Design Insights</span>
+            </h4>
+            <div id="insights" class="text-sm text-gray-700 dark:text-gray-300">
+              <p>Submit your RTL code to get optimization suggestions and design insights.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team & About -->
+  <section class="max-w-4xl mx-auto px-6 py-12 fade-in">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border dark:border-gray-700 shadow-sm">
+        <h2 class="text-2xl font-semibold mb-4 flex items-center gap-2">
+          <i class="fas fa-users text-purple-600 dark:text-purple-400"></i>
+          <span>About Me</span>
+        </h2>
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+            <i class="fas fa-user text-blue-600 dark:text-blue-300 text-2xl"></i>
+          </div>
+          <div>
+            <h3 class="font-bold">Kathir S</h3>
+            <p class="text-gray-600 dark:text-gray-300">ECE, Anna University</p>
+          </div>
+        </div>
+        <p class="text-gray-700 dark:text-gray-300">An electronics enthusiast with a strong passion for Embedded Systems, VLSI, and IoT. I love exploring how hardware and software come together to solve real-world problems. I'm currently pursuing my B.E. in ECE at Anna University, Coimbatore, and I’m always eager to learn, build, and innovate. Whether it's debugging code or understanding circuit behavior, I enjoy the process as much as the outcome. My goal? To keep growing as an engineer and contribute to impactful tech that makes a difference.
+
+        </p>
+      </div>
+      
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border dark:border-gray-700 shadow-sm">
+        <h2 class="text-2xl font-semibold mb-4 flex items-center gap-2">
+          <i class="fas fa-book text-green-600 dark:text-green-400"></i>
+          <span>Technical Details</span>
+        </h2>
+        <p class="text-gray-700 dark:text-gray-300 mb-4">Our ML models were trained on 25868 synthesized RTL designs with Sky-water130 technology nodes to accurately predict PPA metrics.</p>
+        <div class="space-y-2">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-circle text-xs text-blue-500"></i>
+                <span class="text-sm">Regression models for area,power,delay</span>
+              </div>
+              
+              <div class="flex items-center gap-2">
+                <i class="fas fa-circle text-xs text-green-500"></i>
+                <span class="text-sm">Random Forest Regression to train data</span>
+              </div>
+              
+              <div class="flex items-center gap-2">
+                <i class="fas fa-circle text-xs text-purple-500"></i>
+                <span class="text-sm">Feature extraction from RTL structure</span>
+              </div>
+              
+              <div class="flex items-center gap-2">
+                <i class="fas fa-circle text-xs text-teal-500"></i>
+                <span class="text-sm">Supervised Machine learning Techniques</span>
+              </div>
+              
+              <div class="flex items-center gap-2">
+                <i class="fas fa-circle text-xs text-lightblue-500"></i>
+                <span class="text-sm">Feature Vectorization (TF-IDF)</span>
+              </div>
+              
+              <div class="flex items-center gap-2">
+                <i class="fas fa-circle text-xs text-orange-500"></i>
+                <span class="text-sm">Ensemble learning Techniques</span>
+              </div>
+              
+              <div class="flex items-center gap-2">
+                <i class="fas fa-circle text-xs text-yellow-500"></i>
+                <span class="text-sm">Train - Test Split technique</span>
+              </div>
+              
+              <div class="flex items-center gap-2">
+                <i class="fas fa-circle text-xs text-red-500"></i>
+                <span class="text-sm">R-square for accuracy</span>
+              </div>
+              
+              <div class="flex items-center gap-2">
+                <i class="fas fa-circle text-xs text-pink-500"></i>
+                <span class="text-sm">Flask Web Server</span>
+              </div>
+              
+          
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="max-w-4xl mx-auto px-6 py-12 fade-in">
+    <h2 class="text-2xl font-semibold mb-6 text-center">❓ Frequently Asked Questions</h2>
+    <div class="space-y-4">
+      <div class="border-b dark:border-gray-700 pb-4">
+        <button onclick="toggleFAQ(1)" class="flex justify-between items-center w-full text-left font-medium">
+          <span>What accuracy can I expect from the predictions?</span>
+          <i class="fas fa-chevron-down transition-transform" id="faqIcon1"></i>
+        </button>
+        <p id="faqAnswer1" class="mt-2 text-gray-600 dark:text-gray-300 hidden">Our models achieve an average prediction accuracy of 85-92% compared to actual synthesis results, with area predictions being the most accurate. Accuracy may vary based on design complexity and technology node.</p>
+      </div>
+      <div class="border-b dark:border-gray-700 pb-4">
+        <button onclick="toggleFAQ(2)" class="flex justify-between items-center w-full text-left font-medium">
+          <span>What Verilog constructs are supported?</span>
+          <i class="fas fa-chevron-down transition-transform" id="faqIcon2"></i>
+        </button>
+        <p id="faqAnswer2" class="mt-2 text-gray-600 dark:text-gray-300 hidden">We support most synthesizable Verilog-2005 constructs including combinational and sequential logic, finite state machines, arithmetic operations, and module hierarchies. Unsupported constructs will trigger warnings.</p>
+      </div>
+      <div class="border-b dark:border-gray-700 pb-4">
+        <button onclick="toggleFAQ(3)" class="flex justify-between items-center w-full text-left font-medium">
+          <span>How does this compare to actual synthesis?</span>
+          <i class="fas fa-chevron-down transition-transform" id="faqIcon3"></i>
+        </button>
+        <p id="faqAnswer3" class="mt-2 text-gray-600 dark:text-gray-300 hidden">While not a replacement for full synthesis, our tool provides immediate feedback during early design stages. For final implementation, we still recommend running complete synthesis with your target tools.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="text-center p-6 mt-8 border-t dark:border-gray-700 text-sm text-gray-600 dark:text-gray-300">
+    <div class="flex justify-center gap-4 mb-4">
+      <a href="https://github.com/kathirr0805/" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+        <i class="fab fa-github text-lg"></i>
+      </a>
+      <a href="https://www.linkedin.com/in/kathir2005/" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+        <i class="fab fa-linkedin text-lg"></i>
+      </a>
+    </div>
+    <p>&copy; 2025 RTL PPA Predictor. Built with ❤️ and Machine Learning.</p>
+  </footer>
+
+  <!-- Floating action button -->
+  <button onclick="scrollToTop()" class="floating-btn bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors hidden" id="toTopBtn">
+    <i class="fas fa-arrow-up"></i>
+  </button>
+
+  <script>
+    // DOM elements
+    const verilogCode = document.getElementById('verilogCode');
+    const fileInput = document.getElementById('fileInput');
+    const resultDiv = document.getElementById('result');
+    const predictBtn = document.getElementById('predictBtn');
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+    const toTopBtn = document.getElementById('toTopBtn');
+    
+    // Count lines and characters
+    verilogCode.addEventListener('input', function() {
+      const lines = verilogCode.value.split('\n').length;
+      document.getElementById('lineCounter').textContent = `${lines} line${lines !== 1 ? 's' : ''}`;
+      document.getElementById('charCounter').textContent = `${verilogCode.value.length} characters`;
+    });
+    
+    // Handle file upload
+    function handleFileUpload() {
+      fileInput.click();
+    }
+    
+    fileInput.addEventListener('change', function(e) {
+      if (this.files.length === 0) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        verilogCode.value = e.target.result;
+        verilogCode.dispatchEvent(new Event('input'));
+        
+        // Show success message
+        showNotification(`File "${fileInput.files[0].name}" loaded successfully`, 'success');
+      }
+      reader.readAsText(this.files[0]);
+    });
+    
+    // Insert sample code
+    function insertSampleCode() {
+      const sampleCode = `module adder(
+  input [7:0] a, b,
+  input cin,
+  output [7:0] sum,
+  output cout
+);
+  wire [8:0] temp;
+  assign temp = a + b + cin;
+  assign sum = temp[7:0];
+  assign cout = temp[8];
+endmodule
+
+module top;
+  reg [7:0] x, y;
+  reg c;
+  wire [7:0] s;
+  wire co;
+  
+  adder u0(.a(x), .b(y), .cin(c), .sum(s), .cout(co));
+  
+  initial begin
+    x = 8'h12;
+    y = 8'h34;
+    c = 1'b0;
+    #10;
+    $display("Sum = %h, Carry = %b", s, co);
+  end
+endmodule`;
+      
+      verilogCode.value = sampleCode;
+      verilogCode.dispatchEvent(new Event('input'));
+      showNotification('Sample code loaded', 'success');
+    }
+    
+    // Predict function with actual backend call
+    function predict() {
+      const code = verilogCode.value.trim();
+      if (!code) {
+        showNotification('Please enter or upload Verilog code', 'error');
+        return;
+      }
+      
+      // Show loading state
+      predictBtn.innerHTML = '<i class="fas fa-spinner loading-spinner"></i> Analyzing...';
+      predictBtn.disabled = true;
+      progressBar.classList.remove('hidden');
+      
+      // Simulate progress while waiting for API response
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 10;
+        if (progress > 90) progress = 90; // Don't go to 100% until response
+        progressFill.style.width = `${progress}%`;
+      }, 200);
+      
+      // Make actual API call to Flask backend
+      fetch('/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ code: code })
+      })
+      .then(response => {
+        clearInterval(interval);
+        progressFill.style.width = '100%';
+        return response.json();
+      })
+      .then(data => {
+        if (data.error) {
+          showNotification(`Error: ${data.error}`, 'error');
+          document.getElementById('result').classList.add('hidden');
+        } else {
+          // Update results with actual data from backend
+          document.getElementById('areaResult').textContent = `${data.area} µm²`;
+          document.getElementById('delayResult').textContent = `${data.delay} ns`;
+          document.getElementById('powerResult').textContent = `${data.power} µW`;
+          
+          // Generate insights based on results
+          generateInsights(data);
+          
+          // Show results
+          resultDiv.classList.remove('hidden');
+          showNotification('Prediction completed successfully', 'success');
+          
+          // Scroll to results
+          setTimeout(() => {
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 100);
+        }
+      })
+      .catch(error => {
+        clearInterval(interval);
+        showNotification(`Error: ${error.message}`, 'error');
+        console.error('Error:', error);
+      })
+      .finally(() => {
+        setTimeout(() => {
+          predictBtn.innerHTML = '<i class="fas fa-bolt"></i> Predict PPA';
+          predictBtn.disabled = false;
+          progressBar.classList.add('hidden');
+          progressFill.style.width = '0%';
+        }, 500);
+      });
+    }
+    
+    // Generate insights based on prediction results
+    function generateInsights(data) {
+      const insights = [];
+      const area = parseFloat(data.area);
+      const delay = parseFloat(data.delay);
+      const power = parseFloat(data.power);
+      
+      // Area insights
+      if (area > 5000) {
+        insights.push("Your design has relatively large area. Consider optimizing datapaths or using shared resources.");
+      } else if (area < 2000) {
+        insights.push("Compact design with good area utilization. You might explore performance optimizations.");
+      } else {
+        insights.push("Moderate area utilization. Balance between area and performance looks reasonable.");
+      }
+      
+      // Delay insights
+      if (delay > 2.0) {
+        insights.push("Critical path delay is relatively high. Consider pipelining or optimizing combinatorial paths.");
+      } else if (delay < 0.8) {
+        insights.push("Excellent timing performance. You might have margin for area optimization.");
+      } else {
+        insights.push("Timing performance is within typical ranges for this complexity.");
+      }
+      
+      // Power insights
+      if (power > 200) {
+        insights.push("Power consumption seems high. Consider clock gating or power-aware optimizations.");
+      } else if (power < 80) {
+        insights.push("Low power design. Good for energy-constrained applications.");
+      } else {
+        insights.push("Power consumption is typical for this design complexity.");
+      }
+      
+      // General suggestions
+      insights.push("For more accurate results, consider running full synthesis with your target technology library.");
+      
+      // Update insights section
+      document.getElementById('insights').innerHTML = insights.map(i => `<p class="mb-2">• ${i}</p>`).join('');
+    }
+    
+    // Reset editor and result
+    function reset() {
+      verilogCode.value = '';
+      resultDiv.classList.add('hidden');
+      verilogCode.dispatchEvent(new Event('input'));
+      progressBar.classList.add('hidden');
+      progressFill.style.width = '0%';
+      predictBtn.innerHTML = '<i class="fas fa-bolt"></i> Predict PPA';
+      predictBtn.disabled = false;
+    }
+    
+
+    
+    // Check for saved dark mode preference
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark');
+    }
+    
+    // Show notification
+    function showNotification(message, type) {
+      const toast = document.createElement('div');
+      toast.className = `fixed bottom-4 right-4 px-4 py-2 rounded-lg shadow-lg text-white ${
+        type === 'error' ? 'bg-red-500' : 
+        type === 'warning' ? 'bg-yellow-500' : 
+        'bg-green-500'
+      }`;
+      toast.innerHTML = `<div class="flex items-center gap-2">
+        <i class="fas ${
+          type === 'error' ? 'fa-exclamation-circle' : 
+          type === 'warning' ? 'fa-exclamation-triangle' : 
+          'fa-check-circle'
+        }"></i>
+        <span>${message}</span>
+      </div>`;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+    
+    // Toggle FAQ answers
+    function toggleFAQ(num) {
+      const answer = document.getElementById(`faqAnswer${num}`);
+      const icon = document.getElementById(`faqIcon${num}`);
+      
+      answer.classList.toggle('hidden');
+      icon.classList.toggle('rotate-180');
+    }
+    
+    // Scroll to input section
+    function scrollToInput() {
+      document.getElementById('input-section').scrollIntoView({ 
+        behavior: 'smooth' 
+      });
+    }
+    
+    // Scroll to top button
+    function scrollToTop() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+    
+    // Show/hide scroll to top button
+    window.addEventListener('scroll', function() {
+      if (window.pageYOffset > 300) {
+        toTopBtn.classList.remove('hidden');
+      } else {
+        toTopBtn.classList.add('hidden');
+      }
+    });
+    
+    // Initialize
+    verilogCode.dispatchEvent(new Event('input'));
+  </script>
+</body>
+</html>
