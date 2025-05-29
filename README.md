@@ -7,45 +7,75 @@
 
 A machine learning tool that predicts **Power, Performance, and Area (PPA)** metrics directly from Verilog RTL code, eliminating the need for time-consuming synthesis.
 
-## 🚀 Key Features
-- **Instant PPA Prediction**: Get area (µm²), delay (ns), and power (µW) estimates in <2 seconds
-- **No Synthesis Required**: Works directly on raw Verilog code
-- **Web Interface**: User-friendly GUI with code editor and file upload
-- **85-92% Accuracy**: Compared to actual synthesis results (SkyWater 130nm)
+## 🚀 Features
 
+- 🔍 Predicts **Area**, **Delay**, and **Power** from Verilog code
+- 🧠 Uses **Random Forest Regression** with **TF-IDF** vectorized RTL features
+- 🌐 Web UI built using **Flask**
+- 💾 Pretrained ML models provided (`.pkl`)
+- ⚙️ Easily deployable on **Render**, **Replit**, or locally
+- 🧩 No ML or synthesis knowledge needed to use
 ## 📦 Installation
-```bash
-# Clone repository
-git clone https://github.com/yourusername/early-ppa-prediction.git
-cd early-ppa-prediction
 
-# Install dependencies
+---
+
+## 📂 Project Structure
+
+PPA/
+├── app.py # Main Flask server
+├── Procfile # Render deployment config
+├── requirements.txt # Python dependencies
+├── models/ # Pretrained models
+│ ├── area_model.pkl
+│ ├── delay_model.pkl
+│ ├── power_model.pkl
+│ └── vectorizer.pkl
+├── templates/
+│ └── index.html # Frontend HTML
+├── static/
+│ └── style.css # Styling
+├── utilsweb.py # RTL feature extraction
+└── train_models.py # (Optional) Train your own models
+
+
+---
+
+## 📊 Machine Learning Techniques Used
+
+- **TF-IDF Vectorization**: For feature extraction from Verilog code
+- **Random Forest Regression**: Trained separately to predict:
+  - Area
+  - Delay
+  - Power
+
+Models were trained on a custom RTL dataset with real synthesis values.
+
+---
+
+## 🛠️ Requirements
+
+- Python 3.8+
+- Flask
+- scikit-learn
+- joblib
+- numpy
+- Git LFS (for large model files)
+
+---
+
+## 🧪 How to Run Locally
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/kathirr0805/ppa.git
+cd ppa
+
+# 2. (Optional) Setup virtual env
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# 3. Install dependencies
 pip install -r requirements.txt
 
-
-
-├── models/                # Pretrained ML models
-│   ├── area_model.pkl
-│   ├── delay_model.pkl
-│   └── vectorizer.pkl
-├── app.py                 # Flask application
-├── train_models.py        # Model training script
-└── templates/             # Web interface
-    ├── index.html
-    └── style.css
-
-
-
-### Key Features of This README:
-1. **Badges** - Visual indicators for Python version, dependencies, and license
-2. **Structured Sections** - Clear separation of features, installation, usage, and results
-3. **Technical Transparency** - Specifics about models, accuracy, and architecture
-4. **Visual Hierarchy** - Clean formatting with emojis and code blocks
-5. **Reproducibility** - Precise instructions for setup and execution
-
-To use:
-1. Copy this markdown into your `README.md` file
-2. Replace placeholder links/emails with your actual info
-3. Add screenshots of your web interface (optional but recommended) by inserting:
-```markdown
-![Web Interface Demo](docs/demo-screenshot.png)
+# 4. Run the app
+python app.py
