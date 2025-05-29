@@ -19,27 +19,6 @@ A machine learning tool that predicts **Power, Performance, and Area (PPA)** met
 
 ---
 
-## 📂 Project Structure
-
-PPA/
-├── app.py # Main Flask server
-├── Procfile # Render deployment config
-├── requirements.txt # Python dependencies
-├── models/ # Pretrained models
-│ ├── area_model.pkl
-│ ├── delay_model.pkl
-│ ├── power_model.pkl
-│ └── vectorizer.pkl
-├── templates/
-│ └── index.html # Frontend HTML
-├── static/
-│ └── style.css # Styling
-├── utilsweb.py # RTL feature extraction
-└── train_models.py # (Optional) Train your own models
-
-
----
-
 ## 📊 Machine Learning Techniques Used
 
 - **TF-IDF Vectorization**: For feature extraction from Verilog code
